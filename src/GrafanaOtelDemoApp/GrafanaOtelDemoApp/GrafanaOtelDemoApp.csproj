@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>a95a44dd-47c7-4698-981f-c14b13f427c7</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
+    <PackageReference Include="Npgsql.OpenTelemetry" Version="9.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GrafanaOtelDemoApp.Application\GrafanaOtelDemoApp.Application.csproj" />
+    <ProjectReference Include="..\GrafanaOtelDemoApp.Infrastructure\GrafanaOtelDemoApp.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

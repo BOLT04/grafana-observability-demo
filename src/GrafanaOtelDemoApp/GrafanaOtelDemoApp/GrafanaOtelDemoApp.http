@@ -1,0 +1,6 @@
+@GrafanaOtelDemoApp_HostAddress = http://localhost:5155
+
+GET {{GrafanaOtelDemoApp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
