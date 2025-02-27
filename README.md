@@ -21,7 +21,7 @@ The slides for the talk are hosted here: TODO ......
 Developers, Architects
 
 ## Setup
-Read the instructions in `src/READMED.md`.
+Read the instructions in `src/README.md`.
 
 ### Azure Prerequisites
 Specify an Azure account for the Managed Grafana and Prometheus setup and to configure your subscription information following the [Configuration section in Local Azure provisioning documentation](https://learn.microsoft.com/en-us/dotnet/aspire/deployment/azure/local-provisioning#configuration).
