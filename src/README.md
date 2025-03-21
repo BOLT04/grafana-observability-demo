@@ -1,6 +1,9 @@
 # Grafana Demo App
 
-To get this repo running you'll need a few setup steps outlined below.
+This is a demo app instrumented using the `System.Diagnostics.DiagnosticSource` package and OpenTelemetry APIs when necessary. This way we instrument our application layer without the need of third-party APIs.
+**Note**: For instrumenting metrics you could choose the well known [Prometheus library](https://github.com/prometheus-net/prometheus-net) too.
+
+To get this repo running you'll need a few setup steps outlined below:
 
 ## Setup
 ```

@@ -29,5 +29,5 @@ TODO
 
 #### Cool Observability resources
 If you're interested in learning more about the observability ecosystem, here are a few links:
-- https://opentelemetry.io/docs/demo/
+- https://opentelemetry.io/docs/demo/ (or https://github.com/open-telemetry/opentelemetry-demo/tree/main)
 - https://prometheus.io/docs/practices/instrumentation/

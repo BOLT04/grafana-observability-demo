@@ -1,11 +1,20 @@
+using GrafanaOtelDemoApp;
+using GrafanaOtelDemoApp.Application;
+
 var builder = WebApplication.CreateBuilder(args);
 
+// Note: To change demo choose another OtelOption.
+builder.AddObservability(builder.Configuration, OtelOption.Grafana);
+
 // Add services to the container.
+builder.Services.AddSingleton<CartService>();
+builder.Services.AddHostedService<IntegrationHostedService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+//TODO:app.MapPrometheusScrapingEndpoint();
 
+// Configure the HTTP request pipeline.
 app.UseHttpsRedirection();
 
 var summaries = new[]
@@ -13,8 +22,9 @@ var summaries = new[]
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/weatherforecast", (ILogger<Program> log, CartService cartService) =>
 {
+    log.LogInformation("Entered /weatherforecast");
     var forecast = Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
         (
@@ -23,6 +33,10 @@ app.MapGet("/weatherforecast", () =>
             summaries[Random.Shared.Next(summaries.Length)]
         ))
         .ToArray();
+
+    cartService.AddItem();
+    cartService.CreateAPITimerIntegration();
+
     return forecast;
 });
 
