@@ -23,7 +23,7 @@ namespace GrafanaOtelDemoApp.Infrastructure
             );
         }
 
-        public async Task OnTimerGenerateCounters()
+        public Task OnTimerGenerateCounters()
         {
             TelemetryDiagnosticsInfra.ShutdownErrorCount.Add(1);
             TelemetryDiagnosticsInfra.AckCount.Add(10);
@@ -35,6 +35,7 @@ namespace GrafanaOtelDemoApp.Infrastructure
             TelemetryDiagnosticsInfra.DeadLetterCount.Add(1);
             TelemetryDiagnosticsInfra.OpenChannelsCount.Add(1);
             _logger.LogInformation("RabbitMqGateway: Incremented counters.");
+            return Task.CompletedTask;
         }
 
         public async Task PublishEvent()

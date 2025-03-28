@@ -1,6 +1,7 @@
 ﻿using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Grafana.OpenTelemetry;
 using GrafanaOtelDemoApp.Application;
+using GrafanaOtelDemoApp.Infrastructure;
 using Npgsql;
 using OpenTelemetry;
 using OpenTelemetry.Exporter;
@@ -28,7 +29,7 @@ namespace GrafanaOtelDemoApp
             {
                 OtelOption.OTLP => AddOtelOTLP(builder, configuration),
                 OtelOption.Grafana => AddOtelGrafana(builder, configuration),
-                OtelOption.AzureMonitor => AddOtelOTLP(builder, configuration),
+                OtelOption.AzureMonitor => AddOtelAzureMonitor(builder, configuration),
                 _ => throw new ArgumentException("Option not supported"),
             };
             return builder;
@@ -37,6 +38,7 @@ namespace GrafanaOtelDemoApp
         private static IHostApplicationBuilder AddOtelOTLP(IHostApplicationBuilder builder, IConfiguration configuration)
         {
             var otlpServiceName = configuration["Otlp:ServiceName"] ?? DiagnosticsNames.DefaultServiceName;
+            var otlpInfraServiceName = InfrastructureDiagnosticsNames.DefaultServiceName;
             var otlpEndpoint = configuration["Otlp:Endpoint"] ?? string.Empty;
             var services = builder.Services;
 
@@ -51,7 +53,7 @@ namespace GrafanaOtelDemoApp
                 .WithMetrics(metrics =>
                 {
                     metrics
-                        .AddMeter(otlpServiceName)
+                        .AddMeter(otlpServiceName, otlpInfraServiceName)
                         .SetResourceBuilder(resourceBuilder)
                         .AddAspNetCoreInstrumentation()
                         .AddRuntimeInstrumentation()
@@ -75,17 +77,18 @@ namespace GrafanaOtelDemoApp
                 .WithTracing(tracing =>
                 {
                     tracing
-                        .AddSource(otlpServiceName)
+                        .AddSource(otlpServiceName, otlpInfraServiceName)
                         .SetResourceBuilder(resourceBuilder)
                         .AddAspNetCoreInstrumentation()
                         .AddHttpClientInstrumentation()
                         .AddNpgsql();
+                    // Uncomment to test RabbitMQ instrumentation with RabbitMQ.Client.OpenTelemetry nuget (only has traces for now)
+                    //.AddRabbitMQInstrumentation();
 
                     if (!string.IsNullOrEmpty(otlpEndpoint))
                     {
                         tracing.AddOtlpExporter(options =>
                         {
-                            options.Endpoint = new Uri(otlpEndpoint);
                             options.ExportProcessorType = ExportProcessorType.Batch;
                         });
                     }
@@ -104,17 +107,23 @@ namespace GrafanaOtelDemoApp
 
         private static IHostApplicationBuilder AddOtelGrafana(IHostApplicationBuilder builder, IConfiguration configuration)
         {
-            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            var otlpServiceName = configuration["Otlp:ServiceName"] ?? DiagnosticsNames.DefaultServiceName;
+            var otlpInfraServiceName = InfrastructureDiagnosticsNames.DefaultServiceName;
+
+            var tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .UseGrafana()
                 .ConfigureServices(services =>
-                    services.AddOpenTelemetry().WithTracing(T => T.AddSource(DiagnosticsNames.DefaultServiceName))
+                    services
+                        .AddOpenTelemetry()
+                        .WithTracing(tracing => tracing.AddSource(otlpServiceName, otlpInfraServiceName))
                 )
                 .AddConsoleExporter()
                 .Build();
-            using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            var meterProvider = Sdk.CreateMeterProviderBuilder()
                 .UseGrafana()
                 .ConfigureServices(services =>
                     services.AddOpenTelemetry().WithMetrics(T => T.AddMeter(DiagnosticsNames.DefaultServiceName))
+                        .WithMetrics(metrics => metrics.AddMeter(otlpServiceName, otlpInfraServiceName))
                 )
                 .AddConsoleExporter()
                 .Build();

@@ -1,13 +1,14 @@
 using GrafanaOtelDemoApp;
 using GrafanaOtelDemoApp.Application;
+using GrafanaOtelDemoApp.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Note: To change demo choose another OtelOption.
 builder.AddObservability(builder.Configuration, OtelOption.Grafana);
 
-// Add services to the container.
 builder.Services.AddSingleton<CartService>();
+builder.Services.AddSingleton<IEventBusGateway, RabbitMqGateway>();
 builder.Services.AddHostedService<IntegrationHostedService>();
 
 var app = builder.Build();
