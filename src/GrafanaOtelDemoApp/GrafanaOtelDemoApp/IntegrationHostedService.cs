@@ -1,18 +1,18 @@
 ﻿using GrafanaOtelDemoApp.Application;
-using GrafanaOtelDemoApp.Infrastructure;
 
 namespace GrafanaOtelDemoApp
 {
-    public class IntegrationHostedService(ILogger<IntegrationHostedService> logger, CartService cartService, RabbitMqGateway rabbitMqGateway) : BackgroundService
+    public class IntegrationHostedService(
+        ILogger<IntegrationHostedService> _logger,
+        CartService _cartService,
+        IEventBusGateway _eventBusGateway) : BackgroundService
     {
-        private readonly ILogger<IntegrationHostedService> _logger = logger;
-        private readonly CartService _cartService = cartService;
-        private readonly RabbitMqGateway _rabbitMqGateway = rabbitMqGateway;
-
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _cartService.CreateTimerIntegration();
-            _rabbitMqGateway.CreateGenerateCountersTimer();
+            _eventBusGateway.CreateGenerateCountersTimer();
+            _logger.LogInformation("IntegrationHostedService.ExecuteAsync Created timers successfully.");
+
             return Task.CompletedTask;
         }
     }

@@ -4,14 +4,13 @@ using System.Net.Mime;
 
 namespace GrafanaOtelDemoApp.Application
 {
-    public class CartService(ILogger<CartService> logger)
+    public class CartService(ILogger<CartService> _logger, IEventBusGateway _eventBusGateway)
     {
         private const int DUE_TIME = 2;
         private const int INTEGRATION_PERIOD = 1;
         private List<string> _eventQueue = [];
         private Timer _APIIntegrationTimer;
         private Timer _HostedServiceIntegrationTimer;
-        private readonly ILogger _logger = logger;
 
         public Task AddItem()
         {
@@ -70,17 +69,26 @@ namespace GrafanaOtelDemoApp.Application
                 }
 
                 _logger.LogInformation("CartService.OnTimerCartIntegrationAsync Processing...");
-                await Task.Delay(1000);
+                await SimulateWork();
 
                 sw.Stop();
                 _logger.IntegrationCompleted(_eventQueue.Count, sw.Elapsed);
                 TelemetryDiagnostics.IncrementJobTimerCount();
+
+                await _eventBusGateway.PublishEvent();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "CartService.OnTimerCartIntegrationAsync: Error in integrationId: [{integrationId}]", integrationId);
+                // Note: We use AddException since RecordException is obsolete
+                // Docs about exceptions in a trace: https://opentelemetry.io/docs/specs/otel/trace/exceptions/
                 activity?.AddException(ex);
             }
+        }
+
+        private async Task SimulateWork()
+        {
+            await Task.Delay(1000);
         }
     }
 }
