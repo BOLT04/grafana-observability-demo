@@ -89,7 +89,8 @@ namespace GrafanaOtelDemoApp
                     {
                         tracing.AddOtlpExporter(options =>
                         {
-                            options.ExportProcessorType = ExportProcessorType.Batch;
+                            // Uncomment to test Batch export
+                            //options.ExportProcessorType = ExportProcessorType.Batch;
                         });
                     }
                     else
@@ -122,7 +123,8 @@ namespace GrafanaOtelDemoApp
             var meterProvider = Sdk.CreateMeterProviderBuilder()
                 .UseGrafana()
                 .ConfigureServices(services =>
-                    services.AddOpenTelemetry().WithMetrics(T => T.AddMeter(DiagnosticsNames.DefaultServiceName))
+                    services
+                        .AddOpenTelemetry()
                         .WithMetrics(metrics => metrics.AddMeter(otlpServiceName, otlpInfraServiceName))
                 )
                 .AddConsoleExporter()
