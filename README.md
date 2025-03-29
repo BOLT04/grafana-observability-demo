@@ -3,6 +3,9 @@
 This is a simple demo showcasing how we can instrument our applications with OpenTelemetry, using Azure Monitoring + Grafana + Prometheus.
 It's intended to be used as the demo of a specific talk about observability.
 
+## Demo app instructions
+Read the instructions in `src/README.md`.
+
 ## Session Abstract
 Nowadays OpenTelemetry is used extensively to collect telemetry data from our applications, and serves as an industry standard. But we need a way to visualize this data in a clear way, and that is where Azure Managed Grafana comes in.
 
@@ -20,14 +23,7 @@ The slides for the talk are hosted here: TODO ......
 ### Target audience
 Developers, Architects
 
-## Setup
-Read the instructions in `src/README.md`.
-
-### Azure Prerequisites
-Specify an Azure account for the Managed Grafana and Prometheus setup and to configure your subscription information following the [Configuration section in Local Azure provisioning documentation](https://learn.microsoft.com/en-us/dotnet/aspire/deployment/azure/local-provisioning#configuration).
-TODO
-
-#### Cool Observability resources
+## Cool Observability resources
 If you're interested in learning more about the observability ecosystem, here are a few links:
 - https://opentelemetry.io/docs/demo/ (or https://github.com/open-telemetry/opentelemetry-demo/tree/main)
 - https://prometheus.io/docs/practices/instrumentation/
