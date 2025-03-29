@@ -1,7 +1,7 @@
 # Grafana Demo App
 
-This is a demo app instrumented using the `System.Diagnostics.DiagnosticSource` package and OpenTelemetry APIs when necessary. This way we instrument our application layer without the need of third-party APIs.
-**Note**: For instrumenting metrics you could choose the well known [Prometheus library](https://github.com/prometheus-net/prometheus-net) too.
+This is a demo app instrumented using the `System.Diagnostics.DiagnosticSource` package and OpenTelemetry APIs when necessary. This way we instrument our application layer without the need for third-party APIs.
+**Note**: For instrumenting metrics, you could choose the well-known [Prometheus library](https://github.com/prometheus-net/prometheus-net) too.
 
 ## Setup
 To get this application running you'll need a few setup steps outlined below:
@@ -38,8 +38,3 @@ Here are the Grafana dashboards for the Demo (you can add them [by ID](https://g
 - [RED metrics - MLT](https://github.com/grafana/intro-to-mltp/blob/main/grafana/definitions/mlt.json)
 - [ASP.NET Otel Metrics](https://grafana.com/grafana/dashboards/17706-asp-net-otel-metrics/)
 - [Azure infrastructure](https://grafana.com/grafana/dashboards/21257-azure-infrastructure-apps-monitoring/)
-
-#### Cool Observability resources
-If you're interested in learning more about the observability ecosystem, here are a few links:
-- https://opentelemetry.io/docs/demo/
-- https://prometheus.io/docs/practices/instrumentation/
