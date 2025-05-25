@@ -15,6 +15,8 @@ namespace GrafanaOtelDemoApp.Application
         public Task AddItem()
         {
             _eventQueue.Add("item");
+            // Update Prometheus gauge with current queue size
+            PrometheusDiagnostics.SetQueueSize(_eventQueue.Count);
             return Task.CompletedTask;
         }
 
@@ -49,6 +51,9 @@ namespace GrafanaOtelDemoApp.Application
             activity?.SetTag(DiagnosticsNames.IntegrationIdLabel, integrationId);
             using var _ = _logger.BeginScope(new Dictionary<string, object> { [DiagnosticsNames.IntegrationIdLabel] = integrationId });
 
+            // Prometheus metrics - time the entire operation
+            using var prometheusTimer = PrometheusDiagnostics.TimeRequest();
+
             try
             {
                 var client = new HttpClient();
@@ -73,7 +78,11 @@ namespace GrafanaOtelDemoApp.Application
 
                 sw.Stop();
                 _logger.IntegrationCompleted(_eventQueue.Count, sw.Elapsed);
+                
+                // Both OpenTelemetry and Prometheus metrics
                 TelemetryDiagnostics.IncrementJobTimerCount();
+                PrometheusDiagnostics.IncrementJobTimerCount();
+                PrometheusDiagnostics.ObserveResponseTime(sw.Elapsed.TotalSeconds);
 
                 await _eventBusGateway.PublishEvent();
             }
