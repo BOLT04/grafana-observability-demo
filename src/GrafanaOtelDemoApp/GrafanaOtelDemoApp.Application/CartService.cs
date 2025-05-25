@@ -9,8 +9,8 @@ namespace GrafanaOtelDemoApp.Application
         private const int DUE_TIME = 2;
         private const int INTEGRATION_PERIOD = 1;
         private List<string> _eventQueue = [];
-        private Timer _APIIntegrationTimer;
-        private Timer _HostedServiceIntegrationTimer;
+        private Timer? _APIIntegrationTimer;
+        private Timer? _HostedServiceIntegrationTimer;
 
         public Task AddItem()
         {

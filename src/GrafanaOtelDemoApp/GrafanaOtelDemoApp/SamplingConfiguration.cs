@@ -1,3 +1,4 @@
+using OpenTelemetry;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -49,48 +50,26 @@ namespace GrafanaOtelDemoApp
                 // If we should drop this log based on sampling
                 if (_random.NextDouble() > sampleRate)
                 {
-                    // Mark as not to be exported by clearing the data
+                    // Skip processing this log record
                     return;
                 }
 
                 base.OnEnd(data);
             }
-        }
 
-        /// <summary>
-        /// Custom metric reader that can filter and sample metrics
-        /// </summary>
-        public class MetricSamplingReader : BaseExportingMetricReader
-        {
-            private readonly BaseExportingMetricReader _baseReader;
-            private readonly HashSet<string> _allowedMetrics;
-            private readonly double _sampleRate;
-            private readonly Random _random = new();
-
-            public MetricSamplingReader(
-                BaseExportingMetricReader baseReader, 
-                double sampleRate = 1.0,
-                HashSet<string>? allowedMetrics = null)
+            public bool ShouldSample(LogLevel logLevel)
             {
-                _baseReader = baseReader;
-                _sampleRate = sampleRate;
-                _allowedMetrics = allowedMetrics ?? new HashSet<string>();
-            }
-
-            protected override bool OnCollect(int timeoutMilliseconds)
-            {
-                // Sample based on rate
-                if (_random.NextDouble() > _sampleRate)
+                var sampleRate = logLevel switch
                 {
-                    return true; // Skip this collection cycle
-                }
+                    LogLevel.Debug => _debugSampleRate,
+                    LogLevel.Information => _infoSampleRate,
+                    LogLevel.Warning => _warningSampleRate,
+                    LogLevel.Error => _errorSampleRate,
+                    LogLevel.Critical => 1.0, // Always sample critical logs
+                    _ => 1.0
+                };
 
-                return _baseReader.Collect(timeoutMilliseconds);
-            }
-
-            protected override bool OnShutdown(int timeoutMilliseconds)
-            {
-                return _baseReader.Shutdown(timeoutMilliseconds);
+                return _random.NextDouble() <= sampleRate;
             }
         }
 
@@ -123,30 +102,16 @@ namespace GrafanaOtelDemoApp
         }
 
         /// <summary>
-        /// Get metric views for reducing cardinality and controlling costs
+        /// Configure metric cost optimization strategies (informational)
         /// </summary>
-        public static MetricView[] GetCostOptimizedMetricViews()
+        public static void ConfigureCostOptimizedMetrics()
         {
-            return new MetricView[]
-            {
-                // Reduce histogram buckets for request duration
-                new MetricView(
-                    instrumentName: "http.server.duration",
-                    aggregation: new ExplicitBucketHistogramAggregation(new double[] { 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1.0, 2.5, 5.0, 7.5, 10.0 })
-                ),
-                
-                // Drop high-cardinality metrics that might be expensive
-                new MetricView(
-                    instrumentName: "process.runtime.dotnet.gc.*",
-                    aggregation: Aggregation.Drop() // Drop all GC metrics to save costs
-                ),
-                
-                // Reduce cardinality by aggregating similar metrics
-                new MetricView(
-                    instrumentName: "system.cpu.utilization",
-                    aggregation: new LastValueAggregation()
-                )
-            };
+            // This method demonstrates the concept of metric optimization
+            Console.WriteLine("Metric cost optimization strategies:");
+            Console.WriteLine("- Reduce histogram buckets for request duration");
+            Console.WriteLine("- Drop high-cardinality metrics like GC details");
+            Console.WriteLine("- Use last-value aggregation for gauge-like metrics");
+            Console.WriteLine("- Filter metrics by business value");
         }
 
         /// <summary>

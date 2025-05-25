@@ -44,6 +44,9 @@ namespace GrafanaOtelDemoApp
 
             // Configure trace sampling
             SamplingConfiguration.ConfigureTraceSampling();
+            
+            // Configure metric cost optimization
+            SamplingConfiguration.ConfigureCostOptimizedMetrics();
 
             var resourceBuilder = ResourceBuilder.CreateDefault()
                 .AddService(otlpServiceName)
@@ -63,7 +66,6 @@ namespace GrafanaOtelDemoApp
                         .AddProcessInstrumentation()
                         .AddHttpClientInstrumentation()
                         .AddNpgsqlInstrumentation()
-                        .AddViews(SamplingConfiguration.GetCostOptimizedMetricViews()) // Add metric views for cost optimization
                         .AddPrometheusExporter(options =>
                         {
                             options.ScrapeEndpointPath = "/metrics";
