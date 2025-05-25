@@ -42,6 +42,12 @@ namespace GrafanaOtelDemoApp
             var otlpEndpoint = configuration["Otlp:Endpoint"] ?? string.Empty;
             var services = builder.Services;
 
+            // Configure trace sampling
+            SamplingConfiguration.ConfigureTraceSampling();
+            
+            // Configure metric cost optimization
+            SamplingConfiguration.ConfigureCostOptimizedMetrics();
+
             var resourceBuilder = ResourceBuilder.CreateDefault()
                 .AddService(otlpServiceName)
                 .AddHostDetector()
@@ -100,7 +106,21 @@ namespace GrafanaOtelDemoApp
                 });
 
             builder.Logging
-                .AddOpenTelemetry(options => options.AddOtlpExporter())
+                .AddOpenTelemetry(options => 
+                {
+                    // Add log sampling processor
+                    var samplingRates = configuration.GetValue<bool>("EnableLogSampling") 
+                        ? SamplingConfiguration.Presets.MediumVolumeMediumCost 
+                        : SamplingConfiguration.Presets.Development;
+                    
+                    options.AddProcessor(new SamplingConfiguration.LogSamplingProcessor(
+                        samplingRates.debug, 
+                        samplingRates.info, 
+                        samplingRates.warning, 
+                        samplingRates.error));
+                    
+                    options.AddOtlpExporter();
+                })
                 .AddConsole();
 
             return builder;
