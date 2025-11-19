@@ -8,4 +8,4 @@ updates:
   - package-ecosystem: "nuget"
     directory: "/src/GrafanaOtelDemoApp/" # Location of package manifests
     schedule:
-      interval: "weekly"
+      interval: "monthly"
