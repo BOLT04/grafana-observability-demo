@@ -14,6 +14,8 @@ namespace GrafanaOtelDemoApp
 {
     public static class HostExtensions
     {
+        private const string SemanticKernelName = "Microsoft.SemanticKernel*";
+
         /// <summary>
         /// Setup OpenTelemetry with logs, metrics and traces for a given option (depending on the demo).
         /// </summary>
@@ -24,6 +26,9 @@ namespace GrafanaOtelDemoApp
         public static IHostApplicationBuilder AddObservability(this IHostApplicationBuilder builder, IConfiguration configuration, OtelOption otelOption)
         {
             builder.Services.AddSingleton<TelemetryDiagnosticsDI>();
+
+            // Enable Semantic Kernel model diagnostics with sensitive data.
+            AppContext.SetSwitch("Microsoft.SemanticKernel.Experimental.GenAI.EnableOTelDiagnosticsSensitive", true);
 
             builder = otelOption switch
             {
@@ -53,10 +58,13 @@ namespace GrafanaOtelDemoApp
                 .WithMetrics(metrics =>
                 {
                     metrics
-                        .AddMeter(otlpServiceName, otlpInfraServiceName)
+                        .AddMeter(otlpServiceName, otlpInfraServiceName, SemanticKernelName)
                         .SetResourceBuilder(resourceBuilder)
                         .AddAspNetCoreInstrumentation()
-                        .AddRuntimeInstrumentation()
+                        .AddRuntimeInstrumentation(o =>
+                        {
+                            // Note: In the current nuget version, there are no options available. (https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1929)
+                        })
                         .AddProcessInstrumentation()
                         .AddHttpClientInstrumentation()
                         .AddNpgsqlInstrumentation()
@@ -73,14 +81,50 @@ namespace GrafanaOtelDemoApp
                     {
                         metrics.AddConsoleExporter();
                     }
+
+                    metrics.AddConsoleExporter();
                 })
                 .WithTracing(tracing =>
                 {
                     tracing
-                        .AddSource(otlpServiceName, otlpInfraServiceName)
+                        .AddSource(otlpServiceName, otlpInfraServiceName, SemanticKernelName)
                         .SetResourceBuilder(resourceBuilder)
-                        .AddAspNetCoreInstrumentation()
-                        .AddHttpClientInstrumentation()
+                        .AddAspNetCoreInstrumentation(options =>
+                        {
+                            // Configure options for ASP.NET Core instrumentation here
+                        })
+                        .AddHttpClientInstrumentation(options =>
+                        {
+                            // Disable URL query redaction
+                            options.FilterHttpRequestMessage = (httpRequestMessage) =>
+                            {
+                                return true; // Allow all requests
+                            };
+
+                            // Set enrichment to include full URLs
+                            options.EnrichWithHttpRequestMessage = (activity, httpRequestMessage) =>
+                            {
+                                activity.SetTag(DiagnosticsNames.AppHttpUrlLabel, httpRequestMessage.RequestUri?.ToString());
+
+                                // Get the request body if it exists
+                                if (httpRequestMessage.Content != null)
+                                {
+                                    var requestBody = httpRequestMessage.Content.ReadAsStringAsync().Result; // Synchronously read the content
+                                    activity.SetTag("app.request.body", requestBody);
+                                }
+                            };
+
+                            options.EnrichWithHttpResponseMessage = async (activity, httpResponseMessage) =>
+                            {
+                                // Add response enrichment if needed
+                                var a = 2;
+                                var b = await httpResponseMessage.Content.ReadAsStringAsync();
+                                activity.SetTag("app.response", b);
+                            };
+
+                            // Key setting: Disable query redaction
+                            options.RecordException = true;
+                        })
                         .AddNpgsql();
                     // Uncomment to test RabbitMQ instrumentation with RabbitMQ.Client.OpenTelemetry nuget (only has traces for now)
                     //.AddRabbitMQInstrumentation();
@@ -97,6 +141,8 @@ namespace GrafanaOtelDemoApp
                     {
                         tracing.AddConsoleExporter();
                     }
+
+                    tracing.AddConsoleExporter();
                 });
 
             builder.Logging
@@ -116,19 +162,26 @@ namespace GrafanaOtelDemoApp
                 .ConfigureServices(services =>
                     services
                         .AddOpenTelemetry()
-                        .WithTracing(tracing => tracing.AddSource(otlpServiceName, otlpInfraServiceName))
+                        .WithTracing(tracing => tracing.AddSource(otlpServiceName, otlpInfraServiceName, SemanticKernelName))
                 )
                 .AddConsoleExporter()
                 .Build();
             var meterProvider = Sdk.CreateMeterProviderBuilder()
                 .UseGrafana()
+                .AddPrometheusExporter(options =>
+                {
+                    options.ScrapeEndpointPath = "/metrics";
+                })
                 .ConfigureServices(services =>
                     services
                         .AddOpenTelemetry()
-                        .WithMetrics(metrics => metrics.AddMeter(otlpServiceName, otlpInfraServiceName))
+                        .WithMetrics(metrics => metrics.AddMeter(otlpServiceName, otlpInfraServiceName, SemanticKernelName))
                 )
                 .AddConsoleExporter()
                 .Build();
+
+            builder.Services.AddSingleton(tracerProvider);
+            builder.Services.AddSingleton(meterProvider);
 
             builder.Logging.AddOpenTelemetry(logging =>
             {
@@ -138,7 +191,6 @@ namespace GrafanaOtelDemoApp
                     .AddOtlpExporter(otlpOptions =>
                     {
                         otlpOptions.Protocol = OtlpExportProtocol.HttpProtobuf;
-                        otlpOptions.Endpoint = new Uri(configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
                     })
                     .AddConsoleExporter();
             });

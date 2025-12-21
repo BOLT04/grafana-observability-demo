@@ -32,5 +32,6 @@ namespace GrafanaOtelDemoApp.Application
         public const string DefaultServiceName = "GrafanaApp";
         public const string JobTimerCount = "app.job_timer.count";
         public const string IntegrationIdLabel = "app.integration_id";
+        public const string AppHttpUrlLabel = "app.http.url";
     }
 }
