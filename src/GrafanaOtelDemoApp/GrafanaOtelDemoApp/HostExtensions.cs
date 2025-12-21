@@ -116,10 +116,9 @@ namespace GrafanaOtelDemoApp
 
                             options.EnrichWithHttpResponseMessage = async (activity, httpResponseMessage) =>
                             {
-                                // Add response enrichment if needed
-                                var a = 2;
-                                var b = await httpResponseMessage.Content.ReadAsStringAsync();
-                                activity.SetTag("app.response", b);
+                                // Showcase adding response enrichment
+                                var response = await httpResponseMessage.Content.ReadAsStringAsync();
+                                activity.SetTag("app.response", response);
                             };
 
                             // Key setting: Disable query redaction
