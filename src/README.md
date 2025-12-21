@@ -31,6 +31,8 @@ dotnet run --launch-profile http
 dotnet test
 ```
 
+## Node.js TypeScript Demo
+Run the agent demo: `pnpm run dev-agent`
 ### Grafana Dashboards
 
 Here are the Grafana dashboards for the Demo (you can add them [by ID](https://grafana.com/docs/grafana/latest/dashboards/build-dashboards/import-dashboards/) or JSON)
