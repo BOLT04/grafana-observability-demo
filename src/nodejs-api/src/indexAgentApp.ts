@@ -31,6 +31,8 @@ async function agentResearchDemo() {
 
   const openAIService = new AzureOpenAIService();
   const query = "What's the price of a big mac in Argentina?";
+  // Note: The result will be the LLM hallucinating because the researchTool only returns mock data about Lionel Messi
+  // Plus this tool should be called multiple times
   await openAIService.agentResearchTest(query);
 }
 

@@ -1,9 +1,8 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
-
 export const createOutlineTool = tool(
-//@ts-ignore
+  //@ts-ignore
   async ({ points, file_name }) => {
 
     return `Outline saved to ${file_name} with points: ${points.join(", ")}`;
@@ -21,7 +20,7 @@ export const createOutlineTool = tool(
 );
 
 export const readDocumentTool = tool(
-//@ts-ignore
+  //@ts-ignore
   async ({ file_name, start, end }) => {
     await new Promise((resolve) => setTimeout(resolve, 2130));
 
@@ -39,7 +38,7 @@ export const readDocumentTool = tool(
 );
 
 export const writeDocumentTool = tool(
-//@ts-ignore
+  //@ts-ignore
   async (input: { content: string; file_name: string }): string => {
     const { content, file_name } = input;
     await new Promise((resolve) => setTimeout(resolve, 1130));
@@ -57,7 +56,7 @@ export const writeDocumentTool = tool(
 );
 
 export const editDocumentTool = tool(
-//@ts-ignore
+  //@ts-ignore
   async ({ file_name, inserts }) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -75,7 +74,6 @@ export const editDocumentTool = tool(
 
 export const chartTool = tool(
   async () => {
-   
     return "Chart has been generated and displayed to the user!";
   },
   {
